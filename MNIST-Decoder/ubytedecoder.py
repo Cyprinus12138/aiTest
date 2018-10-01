@@ -31,14 +31,12 @@ class MNISTDecoder:
         magic_number, number_of_images, rows, columns = struct.unpack_from(self.fmt_3, self.bin_content, offset)
         offset += struct.calcsize(self.fmt_3)
         image_size = rows * columns
-        fmt_image_pixel = '>B'
+        fmt_image = '>' + str(image_size) + 'B'
         images = np.empty(number_of_images)
         for i in range(number_of_images):
-            image = np.empty(image_size)
-            for pix in range(image_size):
-                image[pix] = struct.unpack_from(fmt_image_pixel, self.bin_content, offset)
-                offset += struct.calcsize(fmt_image_pixel)
-            images[i] = image.reshape((rows, columns))
+            image = np.array(struct.unpack_from(fmt_image, self.bin_content, offset)).reshape((rows, columns))
+            offset += struct.calcsize(fmt_image)
+            images[i] = image
         return images
 
 
