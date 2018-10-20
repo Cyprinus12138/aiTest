@@ -9,7 +9,7 @@ class Weaker:
         self.learning_rate = learning_rate
 
     def classify(self, x):
-        if np.multiply(x, np.transpose(self.w)) > 0 :
+        if np.matmul(x, np.transpose(self.w)) > 0:
             return 1
         return -1
 
