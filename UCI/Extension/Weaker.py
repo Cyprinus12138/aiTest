@@ -3,27 +3,60 @@ import numpy as np
 
 class Weaker:
     def __init__(self, learning_rate, shape):
-        w = np.random.normal(0.0, 1.0, shape)
+        w_r = np.random.normal(0.0, 1.0, shape)
+        self.w_r = w_r.reshape([1, shape])
+        w = np.zeros(shape)
         w = w.reshape([1, shape])
         self.w = w
         self.learning_rate = learning_rate
+        self.false_x = []
+        self.false_y = []
 
     def classify(self, x):
-        if np.matmul(x, np.transpose(self.w)) > 0:
-            return 1
-        return -1
+        return np.matmul(x, np.transpose(self.w))
+
+    def classify_r(self, x):
+        return np.matmul(x, np.transpose(self.w_r))
 
     def train(self, x_list, y_list):
-        false_dict = {}
         false_num = 0
         for i in range(len(x_list)):
             y = self.classify(x_list[i])
-            if y_list[i] * y < 0:
-                false_dict[x_list[i]] = y_list[i]
-                delta_w = x_list[i] * self.learning_rate
+            if y * y_list[i] <= 0:
+                delta_w = -x_list[i] * self.learning_rate
                 self.w = self.w + delta_w
         for i in range(len(x_list)):
             y = self.classify(x_list[i])
-            if y_list[i] * y <0:
+            if y_list[i] * y <= 0:
                 false_num += 1
+                self.false_x.append(x_list[i])
+                self.false_y.append(y_list[i])
+        return false_num / len(x_list)
+
+    def get_false(self):
+        return self.false_x, self.false_y
+
+    def ran_classify(self, x_list, y_list):
+        false_num = 0
+        for i in range(len(x_list)):
+            y = self.classify_r(x_list[i])
+            if y_list[i] * y <= 0:
+                false_num += 1
+        return false_num / len(x_list)
+
+    def train_with_batch(self, x_list, y_list, size):
+        false_num = 0
+        for i in range(len(x_list) // size):
+            delta_w = 0
+            for j in range(size):
+                y = self.classify(x_list[i * size + j])
+                if y_list[i] * y <= 0:
+                    delta_w += -x_list[i * size + j] * self.learning_rate
+            self.w = self.w + delta_w
+        for i in range(len(x_list)):
+            y = self.classify(x_list[i])
+            if y_list[i] * y <= 0:
+                false_num += 1
+                self.false_x.append(x_list[i])
+                self.false_y.append(y_list[i])
         return false_num / len(x_list)
