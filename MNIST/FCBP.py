@@ -92,7 +92,7 @@ def run_training():
         init = tf.global_variables_initializer()
         sess.run(init)
         saver = tf.train.Saver()
-        builder = tf.saved_model.builder.SavedModelBuilder("./model0/")
+        # builder = tf.saved_model.builder.SavedModelBuilder("./model0/")
         summary_writer = tf.summary.FileWriter('./', sess.graph)
         for step in range(MAX_STEP):
             feed_dict = pl.feed_place_holder
@@ -105,8 +105,8 @@ def run_training():
                 # checkpoint_file = os.path.join('./model/', 'model.ckpt')
                 # saver.save(sess, checkpoint_file, global_step=step)
         save_path = saver.save(sess, "./model/FCBP.ckpt")
-        builder.add_meta_graph_and_variables(sess, [tf.saved_model.tag_constants.SERVING], signature_def_map=None, assets_collection=None)
-        builder.save()
+        # builder.add_meta_graph_and_variables(sess, [tf.saved_model.tag_constants.SERVING], signature_def_map=None, assets_collection=None)
+        # builder.save()
         print(sess.run(["hidden_1/weights"]))
         return save_path
 
