@@ -4,12 +4,13 @@ from MNIST.Extension.MNISTDecoder import *
 
 CHANNEL = 1
 KERNEL_SIZE_1 = 5
-KERNEL_SIZE_2 = 3
+KERNEL_SIZE_2 = 5
 KERNEL_NUM_1 = 32
 KERNEL_NUM_2 = 64
-FC_1_NODES = 512
+FC_1_NODES = 1024
 FC_2_NODES = 10
-LEARNING_RATE = 0.00005
+LEARNING_RATE = 0.00011
+KEEP_PROB = 0.87
 BATCH_SIZE = 100
 MAX_STEP = 600
 IMAGE_SIZE = 28
@@ -40,6 +41,8 @@ class CNN:
             weight = tf.Variable(tf.truncated_normal([7 * 7 * KERNEL_NUM_2, FC_1_NODES], stddev=0.1), name="weights")
             biases = tf.Variable(tf.zeros([FC_1_NODES]), name="biases")
             fc_1 = tf.nn.relu(tf.add(tf.matmul(tf.reshape(pool_2, [BATCH_SIZE, 7 * 7 * KERNEL_NUM_2]), weight), biases))
+            fc_1 = tf.nn.dropout(fc_1, KEEP_PROB)
+
         with tf.name_scope("fc_2"):
             weight = tf.Variable(tf.truncated_normal([FC_1_NODES, FC_2_NODES], stddev=0.1), name="weights")
             biases = tf.Variable(tf.zeros([FC_2_NODES]), name="biases")
@@ -53,7 +56,7 @@ class CNN:
 
     def training(self, loss):
         tf.summary.scalar('loss', loss)
-        optimizer = tf.train.GradientDescentOptimizer(self.LEARNING_RATE)
+        optimizer = tf.train.AdamOptimizer(self.LEARNING_RATE)
         global_step = tf.Variable(0, name='global_step', trainable=False)
         train_op = optimizer.minimize(loss, global_step=global_step)
         return train_op
