@@ -86,4 +86,4 @@ with tf.Graph().as_default():
             if np.argmax(corre) == lab[0]:
                 temp += 1
     t1 = time.time()
-    print("识别准确率为", temp / 100, "%", "计算耗时", t1 - t, "s")
+    print("Acc:", temp / 100, "%", "Duration:", round(t1 - t, 2), "s")

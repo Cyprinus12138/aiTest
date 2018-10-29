@@ -1,5 +1,6 @@
 import tensorflow as tf
 from MNIST.Extension.MNISTDecoder import *
+import time
 
 
 CHANNEL = 1
@@ -105,11 +106,14 @@ def run_training():
         saver = tf.train.Saver()
         # builder = tf.saved_model.builder.SavedModelBuilder("./model0/")
         # summary_writer = tf.summary.FileWriter('./', sess.graph)
+        t = time.time()
         for step in range(MAX_STEP):
             feed_dict = pl.feed_place_holder
-            _, loss_value, corr, t = sess.run([train_op, loss, eval, logits], feed_dict=feed_dict())
+            _, loss_value, corr = sess.run([train_op, loss, eval], feed_dict=feed_dict())
             if step % 10 == 0:
-                print(loss_value, corr)
+                t = time.time() - t
+                print("Loss Function:", loss_value, "Correct Classified:", corr, "Duration:", round(t, 2), "s")
+                t = time.time()
                 # summary_str = sess.run(summary, feed_dict=feed_dict)
                 # summary_writer.add_summary(summary_str, step)
                 # summary_writer.flush()
