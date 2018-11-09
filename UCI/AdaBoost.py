@@ -1,7 +1,6 @@
 from UCI.Extension.Weaker import *
 from UCI.Extension.Decoder import *
 
-
 WEAKER_NUM = 10
 
 
@@ -26,4 +25,21 @@ class AdaBoost:
             return 1
         else:
             return -1
+
+    def run_training(self):
+        wp, wn = 1, 1
+        for i in range(1, self.weak_num):
+            wn = wn * math.exp(- self.weaker_set[i - 1].get_alpha())
+            wp = wp * math.exp(self.weaker_set[i - 1].get_alpha())
+            print("alpha=", self.weaker_set[i - 1].get_alpha())
+            print("wp=", wp)
+            z = len(self.weaker_set[i - 1].false_x) * wn + len(self.weaker_set[i - 1].true_x) * wp
+            wn /= z
+            wp /= z
+            x = [sample * wn for sample in self.weaker_set[i - 1].false_x] + [sample * wp for sample in
+                                                                              self.weaker_set[i - 1].true_x]
+            y = [sample for sample in self.weaker_set[i - 1].false_y] + [sample for sample in
+                                                                         self.weaker_set[i - 1].true_y]
+            self.weaker_set[i].train_with_batch(x, y, 580)
+        self.weaker_set[self.weak_num - 1].get_alpha()
 

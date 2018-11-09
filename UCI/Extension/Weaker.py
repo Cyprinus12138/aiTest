@@ -3,14 +3,14 @@ import math
 
 
 class Weaker:
-    alpha = 1
-    false_x = []
-    false_y = []
-    true_x = []
-    true_y = []
-    em = 1
 
     def __init__(self, learning_rate, shape):
+        self.alpha = 1
+        self.em = 1
+        self.false_x = []
+        self.false_y = []
+        self.true_x = []
+        self.true_y = []
         w_r = np.random.normal(0.0, 1.0, shape)
         self.w_r = w_r.reshape([1, shape])
         w = np.zeros(shape)
@@ -71,7 +71,7 @@ class Weaker:
         self.em = false_num / len(x_list)
         return self.em
 
-    @classmethod
-    def set_alpha(cls):
-        cls.alpha = 0.5 * math.log((1 - cls.em) / cls.em)
-        return cls.alpha
+    def get_alpha(self):
+        self.alpha = 0.5 * math.log((1 - self.em) / self.em)
+        print(self.alpha)
+        return self.alpha
