@@ -73,5 +73,4 @@ class Weaker:
 
     def get_alpha(self):
         self.alpha = 0.5 * math.log((1 - self.em) / self.em)
-        print(self.alpha)
         return self.alpha

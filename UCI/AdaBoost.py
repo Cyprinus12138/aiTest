@@ -31,8 +31,6 @@ class AdaBoost:
         for i in range(1, self.weak_num):
             wn = wn * math.exp(- self.weaker_set[i - 1].get_alpha())
             wp = wp * math.exp(self.weaker_set[i - 1].get_alpha())
-            print("alpha=", self.weaker_set[i - 1].get_alpha())
-            print("wp=", wp)
             z = len(self.weaker_set[i - 1].false_x) * wn + len(self.weaker_set[i - 1].true_x) * wp
             wn /= z
             wp /= z
