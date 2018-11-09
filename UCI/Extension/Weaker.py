@@ -1,7 +1,15 @@
 import numpy as np
+import math
 
 
 class Weaker:
+    alpha = 1
+    false_x = []
+    false_y = []
+    true_x = []
+    true_y = []
+    em = 1
+
     def __init__(self, learning_rate, shape):
         w_r = np.random.normal(0.0, 1.0, shape)
         self.w_r = w_r.reshape([1, shape])
@@ -9,13 +17,11 @@ class Weaker:
         w = w.reshape([1, shape])
         self.w = w
         self.learning_rate = learning_rate
-        self.false_x = []
-        self.false_y = []
 
     def classify(self, x):
         return np.matmul(x, np.transpose(self.w))
 
-    def classify_r(self, x):
+    def classify_rand(self, x):
         return np.matmul(x, np.transpose(self.w_r))
 
     def train(self, x_list, y_list):
@@ -36,10 +42,10 @@ class Weaker:
     def get_false(self):
         return self.false_x, self.false_y
 
-    def ran_classify(self, x_list, y_list):
+    def rand_classify(self, x_list, y_list):
         false_num = 0
         for i in range(len(x_list)):
-            y = self.classify_r(x_list[i])
+            y = self.classify_rand(x_list[i])
             if y_list[i] * y <= 0:
                 false_num += 1
         return false_num / len(x_list)
@@ -59,4 +65,13 @@ class Weaker:
                 false_num += 1
                 self.false_x.append(x_list[i])
                 self.false_y.append(y_list[i])
-        return false_num / len(x_list)
+            else:
+                self.true_x.append(x_list[i])
+                self.true_y.append(y_list[i])
+        self.em = false_num / len(x_list)
+        return self.em
+
+    @classmethod
+    def set_alpha(cls):
+        cls.alpha = 0.5 * math.log((1 - cls.em) / cls.em)
+        return cls.alpha
