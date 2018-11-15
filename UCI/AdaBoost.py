@@ -16,7 +16,7 @@ class AdaBoost:
         self.weaker_set[0].train_with_batch(x, y, 580)
         self.weaker_set[0].get_alpha()
 
-    def inference(self, x, threshold):
+    def inference(self, x, threshold=0.0):
         result = sum([weaker.alpha * self.inf_as_one(weaker.classify(x), 0) for weaker in self.weaker_set])
         return self.inf_as_one(result, threshold)
 
@@ -42,13 +42,32 @@ class AdaBoost:
             self.weaker_set[i].train_with_batch(x, y, 580)
             self.weaker_set[i].get_alpha()
 
-    def run_evaluation(self):
+    def run_evaluation_for_poc(self, threshold):
         test_set = Decoder("./DataSet/1year.arff")
         x, y = test_set.get_data(50000)
-        for threshold1 in range(1, 10):
-            threshold = 2.5 / threshold1
-            true_num = 0
-            for i in range(len(x)):
-                if self.inference(x[i], threshold) * y[i] > 0:
-                    true_num += 1
-            print(true_num / len(x))
+        true_num = 0
+        for i in range(len(x)):
+            if self.inference(x[i], threshold) * y[i] > 0:
+                true_num += 1
+        return true_num / len(x)
+
+    def run_evaluation_for_args(self):
+        test_set = Decoder("./DataSet/1year.arff")
+        x, y = test_set.get_data(50000)
+        fp, tp, tn, fn = 0, 0, 0, 0
+        for i in range(len(x)):
+            tmp = self.inference(x[i])
+            if tmp == 1:
+                if y[i] == 1:
+                    tp += 1
+                if y[i] == -1:
+                    fp += 1
+            elif tmp == -1:
+                if y[i] == 1:
+                    fn += 1
+                if y[i] == -1:
+                    tn += 1
+        precision = tp / (tp + fp)
+        recall = tp / (tp + fn)
+        accuracy = (tp + tn) / (tp + tn + fp + fn)
+        return {"precision": precision, "recall": recall, "accuracy": accuracy}
