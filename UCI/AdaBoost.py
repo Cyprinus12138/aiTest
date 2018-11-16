@@ -52,7 +52,7 @@ class AdaBoost:
         for i in range(self.weaker_num):
             self.weaker_set[i].alpha = self.weaker_set[i].alpha / temp
 
-    def run_evaluation_for_roc(self, threshold):
+    def run_evaluation_for_roc(self, threshold=0.0):
         test_set = Decoder(PATH)
         x, y = test_set.get_data(50000)
         fp, tp, tn, fn = 0, 0, 0, 0
@@ -72,7 +72,7 @@ class AdaBoost:
         fpr = fp / (fp + tn)
         return tpr, fpr
 
-    def run_evaluation_for_args(self, threshold):
+    def run_evaluation_for_args(self, threshold=0.0):
         test_set = Decoder(PATH)
         x, y = test_set.get_data(50000)
         fp, tp, tn, fn = 0, 0, 0, 0
