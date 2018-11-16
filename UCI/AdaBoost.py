@@ -1,5 +1,6 @@
 from UCI.Extension.Weaker import *
 from UCI.Extension.Decoder import *
+import time
 
 WEAKER_NUM = 6
 
@@ -30,6 +31,7 @@ class AdaBoost:
     def run_training(self):
         wp, wn = 1, 1
         for i in range(1, self.weaker_num):
+            t = time.time()
             wn = wn * math.exp(- self.weaker_set[i - 1].get_alpha())
             wp = wp * math.exp(self.weaker_set[i - 1].get_alpha())
             z = len(self.weaker_set[i - 1].false_x) * wn + len(self.weaker_set[i - 1].true_x) * wp
@@ -39,8 +41,9 @@ class AdaBoost:
                                                                               self.weaker_set[i - 1].true_x]
             y = [sample for sample in self.weaker_set[i - 1].false_y] + [sample for sample in
                                                                          self.weaker_set[i - 1].true_y]
-            self.weaker_set[i].train_with_batch(x, y, 580)
-            self.weaker_set[i].get_alpha()
+            acc = self.weaker_set[i].train_with_batch(x, y, 580)
+            alpha = self.weaker_set[i].get_alpha()
+            print("Weaker {} trained OK, Duration:{}, Acc:{}%, Alpha={}".format(i + 1, round(time.time() - t, 2), round(acc * 100, 2), alpha))
 
     def run_evaluation_for_roc(self, threshold):
         test_set = Decoder("./DataSet/1year.arff")
@@ -60,8 +63,7 @@ class AdaBoost:
                     tn += 1
         tpr = tp / (tp + fn)
         fpr = fp / (fp + tn)
-        return (tpr, fpr)
-
+        return tpr, fpr
 
     def run_evaluation_for_args(self):
         test_set = Decoder("./DataSet/1year.arff")
