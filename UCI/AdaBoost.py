@@ -42,14 +42,26 @@ class AdaBoost:
             self.weaker_set[i].train_with_batch(x, y, 580)
             self.weaker_set[i].get_alpha()
 
-    def run_evaluation_for_poc(self, threshold):
+    def run_evaluation_for_roc(self, threshold):
         test_set = Decoder("./DataSet/1year.arff")
         x, y = test_set.get_data(50000)
-        true_num = 0
+        fp, tp, tn, fn = 0, 0, 0, 0
         for i in range(len(x)):
-            if self.inference(x[i], threshold) * y[i] > 0:
-                true_num += 1
-        return true_num / len(x)
+            tmp = self.inference(x[i], threshold)
+            if tmp == 1:
+                if y[i] == 1:
+                    tp += 1
+                if y[i] == -1:
+                    fp += 1
+            elif tmp == -1:
+                if y[i] == 1:
+                    fn += 1
+                if y[i] == -1:
+                    tn += 1
+        tpr = tp / (tp + fn)
+        fpr = fp / (fp + tn)
+        return (tpr, fpr)
+
 
     def run_evaluation_for_args(self):
         test_set = Decoder("./DataSet/1year.arff")
