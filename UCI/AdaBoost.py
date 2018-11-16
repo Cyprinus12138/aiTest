@@ -8,7 +8,7 @@ WEAKER_NUM = 6
 class AdaBoost:
     weaker_set = []
 
-    def __init__(self, weaker_num):
+    def __init__(self, weaker_num=WEAKER_NUM):
         dataset = Decoder("./DataSet/1year.arff")
         x, y = dataset.get_data(50000)
         self.weaker_num = weaker_num
@@ -22,7 +22,7 @@ class AdaBoost:
         return self.inf_as_one(result, threshold)
 
     @staticmethod
-    def inf_as_one(y, m):
+    def inf_as_one(y, m=0):
         if y > m:
             return 1
         else:
@@ -43,7 +43,7 @@ class AdaBoost:
                                                                          self.weaker_set[i - 1].true_y]
             acc = self.weaker_set[i].train_with_batch(x, y, 580)
             alpha = self.weaker_set[i].get_alpha()
-            print("Weaker {} trained OK, Duration:{}, Acc:{}%, Alpha={}".format(i + 1, round(time.time() - t, 2), round(acc * 100, 2), alpha))
+            print("Weaker {} trained OK, Duration:{}, Acc:{}%, Alpha={}".format(i + 1, round(time.time() - t, 2), round((1 - acc) * 100, 2), alpha))
 
     def run_evaluation_for_roc(self, threshold):
         test_set = Decoder("./DataSet/1year.arff")

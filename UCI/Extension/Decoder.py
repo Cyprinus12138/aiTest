@@ -22,8 +22,8 @@ class Decoder:
                 if x[j] == '?':
                     x[j] = '0'
             x = [float(data) for data in x]
-            x = [data / np.sum(x) for data in x]      # 归一化可提高5个百分点
             y = x[-1]
+            # x = [x[i] / np.sum(x[:-1]) for i in range(len(x) - 1)]  # 归一化可提高5个百分点
             if y == 0:
                 y = -1
             x = np.array(x[:-1])
