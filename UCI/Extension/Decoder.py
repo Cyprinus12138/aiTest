@@ -20,7 +20,7 @@ class Decoder:
             self.shape = len(x)-1
             for j in range(len(x)):
                 if x[j] == '?':
-                    x[j] = '0'
+                    x[j] = '1'
             x = [float(data) for data in x]
             y = x[-1]
             # x = [x[i] / np.sum(x[:-1]) for i in range(len(x) - 1)]  # 归一化可提高5个百分点
