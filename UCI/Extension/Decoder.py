@@ -23,10 +23,10 @@ class Decoder:
                     x[j] = '1'
             x = [float(data) for data in x]
             y = x[-1]
-            # x = [x[i] / np.sum(x[:-1]) for i in range(len(x) - 1)]  # 归一化可提高5个百分点
+            x = [x[i] / np.sum(x[:-1]) for i in range(len(x) - 1)]  # 归一化可提高5个百分点
             if y == 0:
                 y = -1
-            x = np.array(x[:-1])
+            x = np.array(x)
             x = x.reshape([1, np.shape(x)[0]])
             x_list.append(x)
             y_list.append(y)
