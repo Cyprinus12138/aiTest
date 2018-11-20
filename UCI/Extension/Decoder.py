@@ -27,7 +27,7 @@ class Decoder:
             if y == 0:
                 y = -1
             x = np.array(x)
-            x = x.reshape([1, np.shape(x)[0]])
+            x = x.reshape([np.shape(x)[0]])
             x_list.append(x)
             y_list.append(y)
         return x_list, y_list
