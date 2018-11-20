@@ -1,9 +1,11 @@
 from UCI.Extension.Decoder import *
+import time
 
 INPUT_NODES = 64
 HIDDEN_1 = 128
 HIDDEN_2 = 128
 OUTPUT_NODES = 1
+PATH = "./DataSet/2year.arff"
 
 
 class ActivateFunc:
@@ -60,10 +62,66 @@ class BPNN:
         self.output_bp = self.loss_func(self.output, y)
         self.hidden_2_bp = self.output_bp[0] * self.weight_3
         self.hidden_1_bp = self.hidden_2_bp * self.weight_2 * ActivateFunc.fp(self.hidden_1)
-        weight_1_delta = - np.sign(self.hidden_1_bp) * self.input * self.learning_rate
-        weight_2_delta = - np.sign(self.hidden_2_bp) * self.hidden_1 * self.learning_rate
-        weight_3_delta = -np.sign(self.output_bp) * self.hidden_2 * self.learning_rate
+        weight_1_delta = - np.sign(self.hidden_1_bp) * self.input * ActivateFunc.bp(self.input) * self.learning_rate
+        weight_2_delta = - np.sign(self.hidden_2_bp) * self.hidden_1 * ActivateFunc.bp(self.hidden_1) * self.learning_rate
+        weight_3_delta = - np.sign(self.output_bp) * self.hidden_2 * ActivateFunc.bp(self.hidden_2) * self.learning_rate
         self.weight_1 += weight_1_delta
         self.weight_2 += weight_2_delta
         self.weight_3 += weight_3_delta
 
+    def run_training(self):
+        t = time.time()
+        for i in range(len(self.x)):
+            self.feed_forward(self.x[i])
+            self.back_propagate_update(self.y[i])
+            if i % 100 == 0:
+                print("Training the {} op, duration:{}s".format(i // 10, round(time.time() - t, 2)))
+
+    def run_evaluation_for_args(self, threshold=0.5):
+        fp, tp, tn, fn = 0, 0, 0, 0
+        test_set = Decoder(PATH)
+        x, y = test_set.get_data(50000)
+        for i in range(len(x)):
+            tmp = self.feed_forward(x[i])
+            if tmp > threshold:
+                tmp = 1
+            else:
+                tmp = 0
+            if tmp == 1:
+                if y[i] == 1:
+                    tn += 1
+                if y[i] == 0:
+                    fn += 1
+            elif tmp == 0:
+                if y[i] == 1:
+                    fp += 1
+                if y[i] == 0:
+                    tp += 1
+        precision = tp / (tp + fp)
+        recall = tp / (tp + fn)
+        accuracy = (tp + tn) / (tp + tn + fp + fn)
+        return {"precision": precision, "recall": recall, "accuracy": accuracy}
+
+    def run_evaluation_for_roc(self, threshold=0.5):
+        fp, tp, tn, fn = 0, 0, 0, 0
+        test_set = Decoder(PATH)
+        x, y = test_set.get_data(50000)
+        for i in range(len(x)):
+            tmp = self.feed_forward(x[i])
+            if tmp > threshold:
+                tmp = 1
+            else:
+                tmp = 0
+            if tmp == 1:
+                if y[i] == 1:
+                    tn += 1
+                if y[i] == 0:
+                    fn += 1
+            elif tmp == 0:
+                if y[i] == 1:
+                    fp += 1
+                if y[i] == 0:
+                    tp += 1
+        tpr = tp / (tp + fn)
+        fpr = fp / (fp + tn)
+        return tpr, fpr
