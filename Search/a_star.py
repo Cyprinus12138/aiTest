@@ -12,9 +12,7 @@ x = init_list(4)
 y = init_list(4)
 z = init_list(3)
 c = 16
-
-
-
+track_file = open('a_star_track.txt', 'w')
 
 
 def a_star(r, c=c):
@@ -32,6 +30,7 @@ def a_star(r, c=c):
                 continue
             solv[p][q] = i
             used[i] = 1
+            track_file.write(str(solv) + "\n")
             x[p] += i
             y[q] += i
             if p == q:

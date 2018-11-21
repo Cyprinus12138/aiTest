@@ -1,6 +1,7 @@
 import tensorflow as tf
 import math
 from UCI.Extension.Decoder import *
+import time
 
 BATCH_SIZE = 10
 INPUT_NODES = 64
@@ -77,6 +78,7 @@ class DataFeeder:
 
 def run_training():
     with tf.Graph().as_default():
+        ti = time.time()
         model = FCNet()
         pl = DataFeeder(batch_size=BATCH_SIZE, path=PATH)
         logits = model.inference(pl.data_place)
@@ -94,7 +96,9 @@ def run_training():
             feed_dict = pl.feed_place_holder
             _, loss_value, corr, t = sess.run([train_op, loss, eval, logits], feed_dict=feed_dict())
             if step % 10 == 0:
-                print(loss_value, corr)
+                ti = time.time() - ti
+                print("Loss Function:", loss_value, "Correct Classified:", corr, "Duration:", round(ti, 2), "s")
+                ti = time.time()
                 # summary_str = sess.run(summary, feed_dict=feed_dict)
                 # summary_writer.add_summary(summary_str, step)
                 # summary_writer.flush()
@@ -103,7 +107,6 @@ def run_training():
         save_path = saver.save(sess, "./model/FCBP.ckpt")
         # builder.add_meta_graph_and_variables(sess, [tf.saved_model.tag_constants.SERVING], signature_def_map=None, assets_collection=None)
         # builder.save()
-        print(sess.run(["hidden_1/weights"]))
         return save_path
 
 

@@ -23,7 +23,7 @@ class ActivateFunc:
 
 
 class BPNN:
-    def __init__(self, learning_rate=0.001, data_path=PATH):
+    def __init__(self, learning_rate=0.00001, data_path=PATH):
         self.learning_rate = learning_rate
         test_set = Decoder(data_path)
         self.x, self.y = test_set.get_data(50000)
