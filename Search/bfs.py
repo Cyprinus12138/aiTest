@@ -1,3 +1,6 @@
+import copy
+import sys
+sys.setrecursionlimit(10**9)
 
 def init_list(length):
     tmp = []
@@ -8,12 +11,13 @@ def init_list(length):
 
 class Statu:
     def __init__(self, statu, k, used, x, y, z):
-        self.statu = statu
+        self.statu = copy.deepcopy(statu)
         self.k = k
-        self.used = used
-        self.x = x
-        self.y = y
-        self.z = z
+        self.used = copy.deepcopy(used)
+        self.x = copy.copy(x)
+        self.y = copy.copy(y)
+        self.z = copy.copy(z)
+        return
 
 m = 34
 solv = [init_list(4), init_list(4), init_list(4), init_list(4)]
@@ -26,11 +30,10 @@ status = []
 
 
 def bfs(sta):
-    sta = sta
-    if sta.statu[3][3] != 0:
+    print(status[0].statu, status[0].k)
+    if sta.k >= 15:
         print(sta.statu)
         exit(0)
-    del status[0]
     k = sta.k
     for i in range(1, 17):
         p = int(k / 4)
@@ -38,8 +41,8 @@ def bfs(sta):
         if sta.used[i] == 1:
             continue
         else:
-            tmp = sta
-            sta.statu[p][q] = i
+            tmp = Statu(sta.statu, sta.k, sta.used, sta.x, sta.y, sta.z)
+            tmp.statu[p][q] = i
             tmp.used[i] = 1
             tmp.k += 1
             tmp.x[p] += i
@@ -48,16 +51,17 @@ def bfs(sta):
                 tmp.z[1] += i
             if (p+q) == 3:
                 tmp.z[2] += i
-            if (tmp.k in [3, 7, 11]) and (tmp.x[p] != m):
-                _ = 0
-            elif (tmp.k in [12, 13, 14]) and (tmp.y[q] != m):
-                _ = 0
-            elif tmp.k == 9 and tmp.z[2] != m:
-                _ = 0
-            elif tmp.k == 15 and not (m in [tmp.y[q], tmp.x[p], tmp.z[1]]):
-                _ = 0
+            if (tmp.k in [4, 8, 12]) and (tmp.x[p] != m):
+                del tmp
+            elif (tmp.k in [13, 14, 15]) and (tmp.y[q] != m):
+                del tmp
+            elif tmp.k == 10 and tmp.z[2] != m:
+                del tmp
+            elif tmp.k == 16 and not (m in [tmp.y[q], tmp.x[p], tmp.z[1]]):
+                del tmp
             else:
                 status.append(tmp)
+    del status[0]
     bfs(status[0])
 
 
