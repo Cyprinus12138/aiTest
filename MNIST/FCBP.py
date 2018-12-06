@@ -38,7 +38,8 @@ class FCNet:
             output = tf.add(tf.matmul(hidden_2, weights), biases)
         return output
 
-    def loss(self, outputs, labels):
+    @staticmethod
+    def loss(outputs, labels):
         labels = tf.to_int64(labels)
         cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=labels, logits=outputs, name='xentropy')
         return tf.reduce_mean(cross_entropy, name='xentropy_mean')
@@ -50,7 +51,8 @@ class FCNet:
         train_op = optimizer.minimize(loss, global_step=global_step)
         return train_op
 
-    def evaluation(self, outputs, labels):
+    @staticmethod
+    def evaluation(outputs, labels):
         correct = tf.nn.in_top_k(outputs, labels, 1)
         return tf.reduce_sum(tf.cast(correct, tf.int32))
 
