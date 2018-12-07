@@ -4,16 +4,16 @@ from PIL import Image
 import os
 
 
-G_LEARNING_RATE = 0.000002
-D_LEARNING_RATE = 0.0002
-BATCH_SIZE = 1
+G_LEARNING_RATE = 0.02
+D_LEARNING_RATE = 0.002
+BATCH_SIZE = 100
 G_INPUT_NODES = 100
-G_LAYER_1 = 256
+G_LAYER_1 = 128
 G_LAYER_2 = 28 * 28
 D_INPUT_NODES = 28 * 28
-D_LAYER_1 = 1024
+D_LAYER_1 = 128
 D_LAYER_2 = 1
-MAX_STEP = 30000
+MAX_STEP = 300
 TRAIN_IMG_PATH = r'D:\Git\aiTest\MNIST\DataSet\train-images.idx3-ubyte'
 G_THETA = []
 D_THETA = []
@@ -56,19 +56,20 @@ class GAN:
 
     @staticmethod
     def d_loss(d_fake, d_real):
-        return tf.reduce_mean((tf.nn.sigmoid_cross_entropy_with_logits(labels=[[1.0]], logits=d_real) + tf.nn.sigmoid_cross_entropy_with_logits(labels=[[0.0]], logits=d_fake)) / 2)
+        return tf.reduce_mean((tf.abs(tf.nn.sigmoid_cross_entropy_with_logits(labels=[[1.0] for i in range(BATCH_SIZE)], logits=d_real)) + tf.abs(tf.nn.sigmoid_cross_entropy_with_logits(labels=[[0.0] for i in range(BATCH_SIZE)], logits=d_fake))) / 2)
 
     @staticmethod
     def g_loss(d_fake):
-        return tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(labels=[[1.0]], logits=d_fake))
+        return tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(labels=[[1.0]for i in range(BATCH_SIZE)], logits=d_fake))
 
     @staticmethod
     def training(g_loss, d_loss):
-        # tf.summary.scalar("G_loss", g_loss)
-        # tf.summary.scalar("D_loss", d_loss)
+        tf.summary.scalar("G_loss", g_loss)
+        tf.summary.scalar("D_loss", d_loss)
+        tf.summary.scalar("D/G", d_loss / g_loss)
         global_step = tf.Variable(0, name='global_step', trainable=False)
-        g_optimizer = tf.train.AdamOptimizer(learning_rate=G_LEARNING_RATE)
-        d_optimizer = tf.train.AdamOptimizer(learning_rate=D_LEARNING_RATE)
+        g_optimizer = tf.train.GradientDescentOptimizer(learning_rate=G_LEARNING_RATE)
+        d_optimizer = tf.train.GradientDescentOptimizer(learning_rate=D_LEARNING_RATE)
         train_op = [g_optimizer.minimize(g_loss, global_step=global_step, var_list=G_THETA), d_optimizer.minimize(d_loss, var_list=D_THETA)]
         return train_op
 
@@ -101,8 +102,8 @@ def run_training():
         generate = model.generator(pl.z_pl)
         d_real = model.discriminator(pl.x_pl)
         d_fake = model.discriminator(generate)
-        g_loss = model.g_loss(d_fake=d_fake)
         d_loss = model.d_loss(d_fake=d_fake, d_real=d_real)
+        g_loss = model.g_loss(d_fake=d_fake)
         train_op = model.training(g_loss=g_loss, d_loss=d_loss)
         sess = tf.Session()
         summary = tf.summary.merge_all()
@@ -112,16 +113,16 @@ def run_training():
         summary_writer = tf.summary.FileWriter('./', sess.graph)
         for step in range(MAX_STEP):
             feed_dict = pl.feed_place_holder()
-            _, _, g_loss_value, d_loss_value, gen = sess.run(train_op + [d_loss, g_loss, generate], feed_dict=feed_dict)
-            if step % 1000 == 0:
-                print("g", g_loss_value, "d", d_loss_value)
-                gen = np.reshape(gen, [28, 28])
-                gen *= 225
+            _, _, d_loss_value, g_loss_value, gen = sess.run(train_op + [d_loss, g_loss, generate], feed_dict=feed_dict)
+            if step % 10 == 0:
+                print("g", g_loss_value, "d", d_loss_value, "g/d", g_loss_value / d_loss_value)
+                gen = np.reshape(gen, [100, 28, 28])
+                gen = gen[0] * 225
                 im = Image.fromarray(gen)
                 im.save(str(step) + ".gif")
-                # summary_str = sess.run(summary, feed_dict=feed_dict)
-                # summary_writer.add_summary(summary_str, step)
-                # summary_writer.flush()
+                summary_str = sess.run(summary, feed_dict=feed_dict)
+                summary_writer.add_summary(summary_str, step)
+                summary_writer.flush()
         save_path = saver.save(sess, "./model/GAN.ckpt")
         return save_path
 
