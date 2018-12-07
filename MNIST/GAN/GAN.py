@@ -4,17 +4,19 @@ from PIL import Image
 import os
 
 
-G_LEARNING_RATE = 0.00001
-D_LEARNING_RATE = 0.00001
+G_LEARNING_RATE = 0.000002
+D_LEARNING_RATE = 0.0002
 BATCH_SIZE = 1
 G_INPUT_NODES = 100
-G_LAYER_1 = 128
+G_LAYER_1 = 256
 G_LAYER_2 = 28 * 28
 D_INPUT_NODES = 28 * 28
-D_LAYER_1 = 128
+D_LAYER_1 = 1024
 D_LAYER_2 = 1
 MAX_STEP = 30000
 TRAIN_IMG_PATH = r'D:\Git\aiTest\MNIST\DataSet\train-images.idx3-ubyte'
+G_THETA = []
+D_THETA = []
 
 
 class GAN:
@@ -25,10 +27,14 @@ class GAN:
                 weight = tf.Variable(tf.random_normal([G_INPUT_NODES, G_LAYER_1], stddev=0.1), name='weight')
                 biases = tf.Variable(tf.zeros([G_LAYER_1]), name='biases')
                 layer_1 = tf.nn.relu(tf.add(tf.matmul(z, weight), biases))
+                G_THETA.append(weight)
+                G_THETA.append(biases)
             with tf.name_scope("layer_2"):
                 weight = tf.Variable(tf.random_normal([G_LAYER_1, G_LAYER_2], stddev=0.1), name='weight')
                 biases = tf.Variable(tf.zeros([G_LAYER_2]), name='biases')
-                layer_2 = tf.nn.sigmoid(tf.add(tf.matmul(layer_1, weight), biases))
+                layer_2 = tf.add(tf.matmul(layer_1, weight), biases)
+                G_THETA.append(weight)
+                G_THETA.append(biases)
         return layer_2
 
     @staticmethod
@@ -38,28 +44,32 @@ class GAN:
                 weight = tf.Variable(tf.random_normal([D_INPUT_NODES, D_LAYER_1], stddev=0.1), name='weight')
                 biases = tf.Variable(tf.zeros([D_LAYER_1]), name='biases')
                 layer_1 = tf.nn.relu(tf.add(tf.matmul(x, weight), biases))
+                D_THETA.append(weight)
+                D_THETA.append(biases)
             with tf.name_scope("layer_2"):
                 weight = tf.Variable(tf.random_normal([D_LAYER_1, D_LAYER_2], stddev=0.1), name='weight')
                 biases = tf.Variable(tf.zeros([D_LAYER_2]), name='biases')
-                layer_2 = tf.nn.sigmoid(tf.add(tf.matmul(layer_1, weight), biases))
+                layer_2 = tf.add(tf.matmul(layer_1, weight), biases)
+                D_THETA.append(weight)
+                D_THETA.append(biases)
         return layer_2
 
     @staticmethod
     def d_loss(d_fake, d_real):
-        return - tf.reduce_mean(tf.log(d_real) + tf.log(1 - d_fake))
+        return tf.reduce_mean((tf.nn.sigmoid_cross_entropy_with_logits(labels=[[1.0]], logits=d_real) + tf.nn.sigmoid_cross_entropy_with_logits(labels=[[0.0]], logits=d_fake)) / 2)
 
     @staticmethod
     def g_loss(d_fake):
-        return - tf.reduce_mean(tf.log(d_fake))
+        return tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(labels=[[1.0]], logits=d_fake))
 
     @staticmethod
     def training(g_loss, d_loss):
-        tf.summary.scalar("G_loss", g_loss)
-        tf.summary.scalar("D_loss", d_loss)
+        # tf.summary.scalar("G_loss", g_loss)
+        # tf.summary.scalar("D_loss", d_loss)
         global_step = tf.Variable(0, name='global_step', trainable=False)
         g_optimizer = tf.train.AdamOptimizer(learning_rate=G_LEARNING_RATE)
         d_optimizer = tf.train.AdamOptimizer(learning_rate=D_LEARNING_RATE)
-        train_op = [g_optimizer.minimize(g_loss, global_step=global_step), d_optimizer.minimize(d_loss)]
+        train_op = [g_optimizer.minimize(g_loss, global_step=global_step, var_list=G_THETA), d_optimizer.minimize(d_loss, var_list=D_THETA)]
         return train_op
 
 
@@ -102,20 +112,19 @@ def run_training():
         summary_writer = tf.summary.FileWriter('./', sess.graph)
         for step in range(MAX_STEP):
             feed_dict = pl.feed_place_holder()
-            _, _, g_loss_value, d_loss_value = sess.run(train_op + [d_loss, g_loss], feed_dict=feed_dict)
-            if step % 100 == 0:
+            _, _, g_loss_value, d_loss_value, gen = sess.run(train_op + [d_loss, g_loss, generate], feed_dict=feed_dict)
+            if step % 1000 == 0:
                 print("g", g_loss_value, "d", d_loss_value)
-                gen = sess.run(generate, feed_dict={pl.z_pl: np.random.uniform(-1., 1., size=[BATCH_SIZE, G_INPUT_NODES])})
                 gen = np.reshape(gen, [28, 28])
+                gen *= 225
                 im = Image.fromarray(gen)
-                im.save(str(step) + ".GIF")
-                summary_str = sess.run(summary, feed_dict=feed_dict)
-                summary_writer.add_summary(summary_str, step)
-                summary_writer.flush()
-                checkpoint_file = os.path.join('./model/', 'model.ckpt')
-                saver.save(sess, checkpoint_file, global_step=step)
+                im.save(str(step) + ".gif")
+                # summary_str = sess.run(summary, feed_dict=feed_dict)
+                # summary_writer.add_summary(summary_str, step)
+                # summary_writer.flush()
         save_path = saver.save(sess, "./model/GAN.ckpt")
         return save_path
 
 
-run_training()
+if __name__ == "__main__":
+    run_training()
