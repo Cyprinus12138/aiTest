@@ -5,24 +5,48 @@ import os
 
 
 G_LEARNING_RATE = 0.02
-D_LEARNING_RATE = 0.002
+D_LEARNING_RATE = 0.0002
 BATCH_SIZE = 100
 G_INPUT_NODES = 100
-G_LAYER_1 = 128
+G_LAYER_1 = 1024
 G_LAYER_2 = 28 * 28
 D_INPUT_NODES = 28 * 28
 D_LAYER_1 = 128
 D_LAYER_2 = 1
-MAX_STEP = 300
+MAX_STEP = 60000
 TRAIN_IMG_PATH = r'D:\Git\aiTest\MNIST\DataSet\train-images.idx3-ubyte'
 G_THETA = []
 D_THETA = []
 
 
 class GAN:
+    def __init__(self):
+        with tf.variable_scope("Generator"):
+            with tf.name_scope("layer_1"):
+                weight = tf.Variable(tf.random_normal([G_INPUT_NODES, G_LAYER_1], stddev=0.1), name='weight')
+                biases = tf.Variable(tf.zeros([G_LAYER_1]), name='biases')
+                G_THETA.append(weight)
+                G_THETA.append(biases)
+            with tf.name_scope("layer_2"):
+                weight = tf.Variable(tf.random_normal([G_LAYER_1, G_LAYER_2], stddev=0.1), name='weight')
+                biases = tf.Variable(tf.zeros([G_LAYER_2]), name='biases')
+                G_THETA.append(weight)
+                G_THETA.append(biases)
+        with tf.variable_scope("Discriminator"):
+            with tf.name_scope("layer_1"):
+                weight = tf.Variable(tf.random_normal([D_INPUT_NODES, D_LAYER_1], stddev=0.1), name='weight')
+                biases = tf.Variable(tf.zeros([D_LAYER_1]), name='biases')
+                D_THETA.append(weight)
+                D_THETA.append(biases)
+            with tf.name_scope("layer_2"):
+                weight = tf.Variable(tf.random_normal([D_LAYER_1, D_LAYER_2], stddev=0.1), name='weight')
+                biases = tf.Variable(tf.zeros([D_LAYER_2]), name='biases')
+                D_THETA.append(weight)
+                D_THETA.append(biases)
+
     @staticmethod
     def generator(z):
-        with tf.name_scope("Generator"):
+        with tf.variable_scope("Generator", reuse=True):
             with tf.name_scope("layer_1"):
                 weight = tf.Variable(tf.random_normal([G_INPUT_NODES, G_LAYER_1], stddev=0.1), name='weight')
                 biases = tf.Variable(tf.zeros([G_LAYER_1]), name='biases')
@@ -39,7 +63,7 @@ class GAN:
 
     @staticmethod
     def discriminator(x):
-        with tf.name_scope("Discriminator"):
+        with tf.variable_scope("Discriminator", reuse=True):
             with tf.name_scope("layer_1"):
                 weight = tf.Variable(tf.random_normal([D_INPUT_NODES, D_LAYER_1], stddev=0.1), name='weight')
                 biases = tf.Variable(tf.zeros([D_LAYER_1]), name='biases')
@@ -68,8 +92,8 @@ class GAN:
         tf.summary.scalar("D_loss", d_loss)
         tf.summary.scalar("D/G", d_loss / g_loss)
         global_step = tf.Variable(0, name='global_step', trainable=False)
-        g_optimizer = tf.train.GradientDescentOptimizer(learning_rate=G_LEARNING_RATE)
-        d_optimizer = tf.train.GradientDescentOptimizer(learning_rate=D_LEARNING_RATE)
+        g_optimizer = tf.train.GradientDescentOptimizer(learning_rate=G_LEARNING_RATE, name="G_Optimizer")
+        d_optimizer = tf.train.GradientDescentOptimizer(learning_rate=D_LEARNING_RATE, name="D_Optimizer")
         train_op = [g_optimizer.minimize(g_loss, global_step=global_step, var_list=G_THETA), d_optimizer.minimize(d_loss, var_list=D_THETA)]
         return train_op
 
@@ -111,10 +135,11 @@ def run_training():
         sess.run(init)
         saver = tf.train.Saver()
         summary_writer = tf.summary.FileWriter('./', sess.graph)
+        feed_dict = pl.feed_place_holder()
         for step in range(MAX_STEP):
-            feed_dict = pl.feed_place_holder()
             _, _, d_loss_value, g_loss_value, gen = sess.run(train_op + [d_loss, g_loss, generate], feed_dict=feed_dict)
-            if step % 10 == 0:
+            if step % 100 == 0:
+                feed_dict = pl.feed_place_holder()
                 print("g", g_loss_value, "d", d_loss_value, "g/d", g_loss_value / d_loss_value)
                 gen = np.reshape(gen, [100, 28, 28])
                 gen = gen[0] * 225
