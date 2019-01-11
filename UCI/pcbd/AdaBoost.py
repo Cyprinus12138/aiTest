@@ -1,5 +1,5 @@
-from UCI.Extension.Weaker import *
-from UCI.Extension.Decoder import *
+from UCI.pcbd.Extension.Weaker import *
+from UCI.pcbd.Extension.Decoder import *
 import time
 
 WEAKER_NUM = 6

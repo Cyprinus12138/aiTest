@@ -1,6 +1,6 @@
 import tensorflow as tf
 import math
-from UCI.Extension.Decoder import *
+from UCI.pcbd.Extension.Decoder import *
 import time
 
 BATCH_SIZE = 10

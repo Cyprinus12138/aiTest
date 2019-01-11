@@ -1,4 +1,4 @@
-from UCI.Extension.Decoder import *
+from UCI.pcbd.Extension.Decoder import *
 import time
 
 INPUT_NODES = 64
