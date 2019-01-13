@@ -14,7 +14,7 @@ class LR:
         self.learning_rate = learning_rate
         self.max_iteration = 2000
         self.weight_lambda = 0.01
-        w = np.zeros((3, 5))
+        w = np.zeros((3, 4))
         self.w = w
         self.eval_mat = [[0] * 3] * 3
 
@@ -34,11 +34,11 @@ class LR:
         return -x * (first - second) + self.weight_lambda * self.w[j]
 
     def predict_(self, x):
-        result = np.dot(self.w, x)
+        result = np.matmul(self.w, x)
         row, column = result.shape
         _positon = np.argmax(result)
         m, n = divmod(_positon, column)
-        return m
+        return _positon
 
     def train_one_batch(self, features, labels):
         idx = 0
@@ -51,7 +51,6 @@ class LR:
             y = labels[index]
 
             x = list(x)
-            x.append(1.0)
             x = np.array(x)
 
             derivatives = [self.cal_partial_derivative(x, y, j) for j in range(3)]
@@ -70,7 +69,6 @@ class LR:
         labels = []
         for feature in features:
             x = list(feature)
-            x.append(1)
             x = np.matrix(x)
             x = np.transpose(x)
             labels.append(self.predict_(x))
@@ -80,12 +78,15 @@ class LR:
         data = Decoder(PATH)
         x_list, y_list = data.get_data(150)
         i = 0
+        acc = 0
         for x in x_list:
             x = [[i] for i in x]
-            x.append([1])
             self.eval_mat[int(y_list[i])][int(self.predict_(x))] += 1
             print(int(self.predict_(x)))
+            if int(y_list[i]) == int(self.predict_(x)):
+                acc += 1
             i += 1
         print(self.eval_mat)
+        print(acc / 150)
 
 
