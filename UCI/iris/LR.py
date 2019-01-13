@@ -5,14 +5,14 @@ from UCI.iris.Extension.Decoder import Decoder
 
 
 PATH = r"D:\Git\aiTest\UCI\iris\DataSet\iris.data"
-BATCH = 5
+BATCH = 150
 
 
 class LR:
 
     def __init__(self, learning_rate):
         self.learning_rate = learning_rate
-        self.max_iteration = 10
+        self.max_iteration = 2000
         self.weight_lambda = 0.01
         w = np.zeros((3, 5))
         self.w = w
@@ -80,16 +80,12 @@ class LR:
         data = Decoder(PATH)
         x_list, y_list = data.get_data(150)
         i = 0
-        acc = 0
         for x in x_list:
             x = [[i] for i in x]
             x.append([1])
-            print(x)
             self.eval_mat[int(y_list[i])][int(self.predict_(x))] += 1
-            if int(y_list[i]) == int(self.predict_(x)):
-                acc += 1
+            print(int(self.predict_(x)))
             i += 1
         print(self.eval_mat)
-        print(acc/150)
 
 
