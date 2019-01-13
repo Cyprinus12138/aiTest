@@ -1,7 +1,7 @@
 import numpy as np
 
 
-type_map = {"Iris-setosa": 0, "Iris-versicolor": 1, "Iris-virginica": 2}
+type_map = {"Iris-setosa\n": 0, "Iris-versicolor\n": 1, "Iris-virginica\n": 2}
 
 
 class Decoder:
@@ -20,7 +20,7 @@ class Decoder:
             self.shape = len(x)-1
             y = type_map[x[-1]]
             x = [float(data) for data in x[:-1]]
-            x = [x[i] / np.sum(x[:-1]) for i in range(len(x) - 1)]
+            # x = [x[i] / np.sum(x[:-1]) for i in range(len(x) - 1)]
             x = np.array(x)
             x = x.reshape([np.shape(x)[0]])
             x_list.append(x)
