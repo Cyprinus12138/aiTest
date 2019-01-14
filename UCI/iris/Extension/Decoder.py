@@ -1,4 +1,5 @@
 import numpy as np
+import random
 
 
 type_map = {"Iris-setosa\n": 0, "Iris-versicolor\n": 1, "Iris-virginica\n": 2}
@@ -12,12 +13,15 @@ class Decoder:
     def get_data(self, size):
         x_list = []
         y_list = []
+        lines = []
         for i in range(size):
-            line = self.file.readline()
+            lines.append(self.file.readline())
+        random.shuffle(lines)
+        for line in lines:
             x = line.split(",")
             if len(x) <= 2:
                 return x_list, y_list
-            self.shape = len(x)-1
+            self.shape = len(x) - 1
             y = type_map[x[-1]]
             x = [float(data) for data in x[:-1]]
             # x = [x[i] / np.sum(x[:-1]) for i in range(len(x) - 1)]

@@ -1,10 +1,10 @@
 import tensorflow as tf
 import math
-from UCI.pcbd.Extension.Decoder import *
+from UCI.iris.Extension.Decoder import *
 import time
 
 
-BATCH_SIZE = 5
+BATCH_SIZE = 1
 INPUT_NODES = 4
 HIDDEN_1 = 128
 HIDDEN_2 = 16
@@ -38,45 +38,50 @@ class DataFeeder:
         return self.get_next[1]
 
 
-with tf.Graph().as_default():
-    def inference(_input):
-        with tf.name_scope('hidden_1'):
-            weights = tf.Variable(
-                tf.truncated_normal([INPUT_NODES, HIDDEN_1], mean=0, stddev=1.0 / math.sqrt(float(HIDDEN_1))),
-                name='weights')
-            biases = tf.Variable(tf.zeros([HIDDEN_1]), name='biases')
-            hidden_1 = tf.add(tf.matmul(_input, weights), biases)
-        with tf.name_scope('hidden_2'):
-            weights = tf.Variable(
-                tf.truncated_normal([HIDDEN_1, HIDDEN_2], mean=0, stddev=1.0 / math.sqrt(float(HIDDEN_2))),
-                name='weights')
-            biases = tf.Variable(tf.zeros([HIDDEN_2]), name='biases')
-            hidden_2 = tf.nn.relu(tf.add(tf.matmul(hidden_1, weights), biases))
-        with tf.name_scope('output'):
-            weights = tf.Variable(
-                tf.truncated_normal([HIDDEN_2, OUTPUT_NODES], mean=0, stddev=1.0 / math.sqrt(float(OUTPUT_NODES))),
-                name='weights')
-            biases = tf.Variable(tf.zeros([OUTPUT_NODES]), name='biases')
-            output = tf.add(tf.matmul(hidden_2, weights), biases)
-        return output
-    e_pl = DataFeeder(batch_size=BATCH_SIZE, path=PATH)
-    e_feed_dict = e_pl.feed_place_holder
-    input_ = e_pl.data_place
-    logits = inference(input_)
-    sess = tf.Session()
-    saver = tf.train.Saver()
-    saver.restore(sess, save_path='./model/FCBP.ckpt')
-    temp = 0
-    eval_mat = [[0] * 3] * 3
-    accuracy = 0
-    for i in range(150):
-        if i % 1 == 0:
-            DICT = e_feed_dict()
-            corre = sess.run([logits], feed_dict=DICT)
-            y = e_pl.get_label()
-            for j in range(BATCH_SIZE):
-                tmp = np.argmax(corre[0][j])
-                eval_mat[int(tmp)][y] += 1
-                if int(tmp) == y:
-                    accuracy += 1
-    print({"accuracy": accuracy/150})
+if __name__ == "__main__":
+    with tf.Graph().as_default():
+        def inference(_input):
+            with tf.name_scope('hidden_1'):
+                weights = tf.Variable(
+                    tf.truncated_normal([INPUT_NODES, HIDDEN_1], mean=0, stddev=1.0 / math.sqrt(float(HIDDEN_1))),
+                    name='weights')
+                biases = tf.Variable(tf.zeros([HIDDEN_1]), name='biases')
+                hidden_1 = tf.add(tf.matmul(_input, weights), biases)
+            with tf.name_scope('hidden_2'):
+                weights = tf.Variable(
+                    tf.truncated_normal([HIDDEN_1, HIDDEN_2], mean=0, stddev=1.0 / math.sqrt(float(HIDDEN_2))),
+                    name='weights')
+                biases = tf.Variable(tf.zeros([HIDDEN_2]), name='biases')
+                hidden_2 = tf.nn.relu(tf.add(tf.matmul(hidden_1, weights), biases))
+            with tf.name_scope('output'):
+                weights = tf.Variable(
+                    tf.truncated_normal([HIDDEN_2, OUTPUT_NODES], mean=0, stddev=1.0 / math.sqrt(float(OUTPUT_NODES))),
+                    name='weights')
+                biases = tf.Variable(tf.zeros([OUTPUT_NODES]), name='biases')
+                output = tf.add(tf.matmul(hidden_2, weights), biases)
+            return output
+
+
+        e_pl = DataFeeder(batch_size=BATCH_SIZE, path=PATH)
+        e_feed_dict = e_pl.feed_place_holder
+        input_ = e_pl.data_place
+        logits = inference(input_)
+        sess = tf.Session()
+        saver = tf.train.Saver()
+        saver.restore(sess, save_path='./model/FCBP.ckpt')
+        temp = 0
+        eval_mat = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+        accuracy = 0
+        for i in range(150):
+            if i % 1 == 0:
+                DICT = e_feed_dict()
+                corre = sess.run([logits], feed_dict=DICT)
+                y = e_pl.get_label()[0]
+                for j in range(BATCH_SIZE):
+                    tmp = np.argmax(corre[0][j])
+                    eval_mat[int(tmp)][y] += 1
+                    if int(tmp) == y:
+                        accuracy += 1
+                    print(tmp, y)
+        print({"accuracy": accuracy / 150})
+        print(eval_mat)

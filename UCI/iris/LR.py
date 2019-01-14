@@ -16,7 +16,7 @@ class LR:
         self.weight_lambda = 0.01
         w = np.zeros((3, 4))
         self.w = w
-        self.eval_mat = [[0] * 3] * 3
+        self.eval_mat = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
 
     def cal_e(self, x, l):
         theta_l = self.w[l]
@@ -43,7 +43,7 @@ class LR:
     def train_one_batch(self, features, labels):
         idx = 0
         while idx < self.max_iteration:
-            print('loop %d' % idx)
+            print('epoch %d' % idx)
             idx += 1
             index = random.randint(0, len(labels) - 1)
 
@@ -82,11 +82,16 @@ class LR:
         for x in x_list:
             x = [[i] for i in x]
             self.eval_mat[int(y_list[i])][int(self.predict_(x))] += 1
-            print(int(self.predict_(x)))
             if int(y_list[i]) == int(self.predict_(x)):
                 acc += 1
             i += 1
         print(self.eval_mat)
         print(acc / 150)
+
+
+if __name__ == "__main__":
+    lr = LR(0.001)
+    lr.train()
+    lr.evaluation()
 
 
